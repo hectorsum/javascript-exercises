@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Simon Dice</title>
+    <style>
+        body {
+            margin: 0;
+            background: #dedede;
+            display: flex;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .gameboard {
+            height: 100vh;
+            width: 100vh;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto;
+            max-height: 60vh;
+            max-width: 60vh;
+        }
+
+        .color {
+            width: 50%;
+            height: 50%;
+            display: inline-block;
+        }
+
+        .left {
+            float: left;
+        }
+
+        .right {
+            float: left;
+        }
+
+        .celeste {
+            background: #22a6b3;
+        }
+
+        .celeste.light {
+            background: #7ed6df;
+        }
+
+        .violeta {
+            background: #be2edd;
+        }
+
+        .violeta.light {
+            background: #e056fd;
+        }
+
+        .naranja {
+            background: #f0932b;
+        }
+
+        .naranja.light {
+            background: #ffbe76;
+        }
+
+        .verde {
+            background: #6ab04c;
+        }
+
+        .verde.light {
+            background: #badc58;
+        }
+
+        .btn-start {
+            width: 400px;
+            height: 100px;
+            background: #ecf0f1;
+            color: #2c3e50;
+            font-size: 2.5rem;
+            position: absolute;
+            top: calc(40% - 50px);
+            left: calc(50% - 200px);
+        }
+
+        .hide {
+            display: none;
+        }
+        *{
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body{
+            background-color: #000000;
+            display:flex;
+            flex-direction: column;
+        }
+        .box{       
+            color: white;            
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <header class="box">
+        <h1><strong>Nivel: </strong><span class="level"></span></h1>
+    </header>
+    <div class="box gameboard"> <!--El contenido de data-color, se agrega en una seccion de dataset-->        
+        <div id="celeste" class="color celeste left" data-color="celeste"></div>
+        <div id="violeta" class="color violeta right" data-color="violeta"></div>
+        <div id="naranja" class="color naranja left" data-color="naranja"></div>
+        <div id="verde" class="color verde right" data-color="verde"></div>
+        <button id="btnEmpezar" class="btn-start" onclick="empezarJuego()">Empezar a jugar!</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js
+    "></script>
+    <script>                
+        const celeste = document.getElementById('celeste')
+        const violeta = document.getElementById('violeta')
+        const naranja = document.getElementById('naranja')
+        const verde = document.getElementById('verde')
+        const btnEmpezar = document.getElementById('btnEmpezar')
+        const spanNivel = document.querySelector('.level')        
+        const ULTIMO_NIVEL = 2 //Niveles como máximo        
+        class Juego {
+            constructor() {
+                this.inicializar = this.inicializar.bind(this)//Amarrar el incializar con el objeto
+                this.inicializar() //No hay necesidad de declarar la funcion porque lo hace por si mismo
+                this.generarSecuencia()
+                setTimeout(this.siguienteNivel,500)                
+            }
+
+            inicializar() { 
+                spanNivel.innerHTML = '1'
+                this.elegirColor = this.elegirColor.bind(this) //Amarra al objeto y cuando se llama no se imprime los elementos html, sino del MISMO OBJETO
+                this.siguienteNivel = this.siguienteNivel.bind(this) 
+                this.toggleBtnEmpezar() //Botón de inicio de empezar
+                //btnEmpezar.classList.add('hide')
+                this.nivel = 1                
+                this.colores = {
+                    //celeste : 'celeste', //Se puede omitir esto
+                    celeste,
+                    violeta,
+                    naranja,
+                    verde
+                }          
+            }
+            toggleBtnEmpezar(){
+                if(btnEmpezar.classList.contains('hide')){
+                    btnEmpezar.classList.remove('hide')
+                }else{
+                    btnEmpezar.classList.add('hide')
+                }
+            }
+            generarSecuencia(){
+                //Random del 0 a 3 dentro del array(10)
+                this.secuencia = new Array(ULTIMO_NIVEL).fill(0).map(elem => Math.floor(Math.random() * 4));
+            }
+            siguienteNivel(){
+                this.subnivel = 0                
+                this.iluminarSecuencia()
+                this.agregarEventosClick()                
+            }
+            transformarNumAColor(numero){ // Asignando al array de random un color por numero
+                switch(numero){ 
+                    case 0:
+                        return 'celeste' //No hace falta poner break cuando se hace return
+                    case 1:
+                        return 'violeta'
+                    case 2:
+                        return 'naranja'
+                    case 3:
+                        return 'verde'
+                }
+            }
+            transformarColorANum(numero){ // Asignando al array de random un color por numero
+                switch(numero){ 
+                    case 'celeste':
+                        return 0 //No hace falta poner break cuando se hace return
+                    case 'violeta':
+                        return 1
+                    case 'naranja':
+                        return 2
+                    case 'verde':
+                        return 3
+                }
+            }
+            iluminarSecuencia(){
+                this.segundos = 1000 // Cada vuelta, 1 segundo va aumentar para cada color
+                for (let i = 0;i < this.nivel;i++){
+                    let color = this.transformarNumAColor(this.secuencia[i])
+                    setTimeout(() => {
+                        this.iluminarColor(color)                        
+                    }, this.segundos);
+                    this.segundos+=1000
+                }
+            }
+            iluminarColor(color){
+                //Recibe parametro tipo string ("violeta",etc)                
+                this.colores[color].classList.add('light') //Le agregamos clase "light"
+                setTimeout(() => {
+                    this.apagarColor(color);
+                }, 350);
+            }
+            apagarColor(color){
+                this.colores[color].classList.remove('light') //Removiendo clase "light"
+            }
+            agregarEventosClick(){ 
+                this.colores.celeste.addEventListener('click',this.elegirColor);
+                this.colores.verde.addEventListener('click',this.elegirColor);
+                this.colores.violeta.addEventListener('click',this.elegirColor);
+                this.colores.naranja.addEventListener('click',this.elegirColor);
+            }
+            eliminarEventosClick(){
+                this.colores.celeste.removeEventListener('click',this.elegirColor);
+                this.colores.verde.removeEventListener('click',this.elegirColor);
+                this.colores.violeta.removeEventListener('click',this.elegirColor);
+                this.colores.naranja.removeEventListener('click',this.elegirColor);
+            }
+            elegirColor(ev){
+                //Obtiene el contenido del atrib data-color del html
+                const nombreColor = ev.target.dataset.color //Retorna string('violeta',etc)
+                const numeroColor = this.transformarColorANum(nombreColor) //Retorna int (0,1,2,3)
+                
+                this.iluminarColor(nombreColor) //Recibe argumento "string"
+                // Si el numeroColor(0,1,2,3) es igual a un elemento del arreglo de random(0 = nivel) 0 === secuencia[0], secuencia[0] puede ser cualquier random del arreglo
+                if (numeroColor === this.secuencia[this.subnivel]){ //Si hacen match, el nivel sube               
+                    this.subnivel++
+                    if (this.subnivel === this.nivel){                        
+                        this.nivel++
+                        spanNivel.innerHTML = this.nivel
+                        this.eliminarEventosClick()
+                        if (this.nivel === (ULTIMO_NIVEL+1)){
+                            //Ganó !
+                            this.ganoElJuego()                            
+                        }else{
+                            //No se pone los parentesis para no ejecutar, sino sin parentesis para decirle cual es la funcion
+                            setTimeout(this.siguienteNivel, 1500);
+                        }
+                    }                    
+                }else{
+                    this.perdioElJuego()                    
+                }
+            }
+            ganoElJuego(){
+                // Titulo, Descripcion, imagen                
+                // swal('Ganaste','Felicitaciones ganaste el juego','success')
+                // .then(this.inicializar)
+                spanNivel.innerHTML = "Ganaste!!!"
+                setTimeout(this.inicializar,2000)                
+            }
+            perdioElJuego(){
+                // Titulo, Descripcion, imagen
+                swal('Perdiste','Lo siento, intenta nuevamente','error')
+                .then(()=>{                    
+                    this.eliminarEventosClick()
+                    this.inicializar()
+                })                
+            }
+        }
+
+        function empezarJuego() {
+            var juego = new Juego()            
+        }
+    </script>
+</body>
+
+</html>
